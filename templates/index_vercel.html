@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Similarity System - Vercel</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --warning-color: #fca311;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --border-color: #dee2e6;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fb;
+            color: #333;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .upload-section {
+            grid-column: span 2;
+        }
+        
+        @media (max-width: 768px) {
+            .upload-section {
+                grid-column: span 1;
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="file"], input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #d1146a;
+        }
+        
+        .btn-success {
+            background-color: #2a9d8f;
+        }
+        
+        .btn-success:hover {
+            background-color: #228b7e;
+        }
+        
+        #uploadStatus {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
+        }
+        
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .image-item {
+            position: relative;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        
+        .image-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .image-info {
+            padding: 10px;
+        }
+        
+        .image-info p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .image-source {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .image-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .image-actions button {
+            flex: 1;
+            margin: 0 2px;
+            padding: 8px;
+            font-size: 14px;
+        }
+        
+        .comparison-section {
+            grid-column: span 2;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-section {
+                grid-column: span 1;
+            }
+        }
+        
+        .comparison-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .similarity-meter {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .similarity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffd166, #06d6a0);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .similarity-label {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .result-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .result-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state p {
+            margin: 10px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Image Similarity System</h1>
+        <p>Vercel-Compatible Version</p>
+    </header>
+    
+    <div class="container">
+        <div class="card upload-section">
+            <h2>Upload Images</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="fileInput">Choose an image file:</label>
+                    <input type="file" id="fileInput" name="file" accept="image/*" required>
+                </div>
+                <button type="submit">Upload Image</button>
+            </form>
+            
+            <div id="uploadStatus"></div>
+        </div>
+        
+        <div class="card">
+            <h2>All Images</h2>
+            <div id="imageList" class="image-gallery">
+                <div class="empty-state">
+                    <p>No images available</p>
+                    <p>Upload some images to get started</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card comparison-section">
+            <h2>Compare Images</h2>
+            <div class="comparison-controls">
+                <div class="form-group">
+                    <label for="image1">Select First Image:</label>
+                    <select id="image1">
+                        <option value="">-- Select an image --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="image2">Select Second Image:</label>
+                    <select id="image2">
+                        <option value="">-- Select an image --</option>
+                    </select>
+                </div>
+                <div>
+                    <button id="compareButton">Compare Similarity</button>
+                </div>
+            </div>
+            
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Handle image upload
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            formData.append('file', fileInput.files[0]);
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showStatus('Error: ' + data.error, 'error');
+                } else {
+                    showStatus('Image uploaded successfully: ' + data.filename, 'success');
+                    loadAllImages();
+                    fileInput.value = '';
+                }
+            })
+            .catch(error => {
+                showStatus('Error uploading image: ' + error, 'error');
+            });
+        });
+        
+        // Show status message
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = 'alert-' + type;
+            statusDiv.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Load all images
+        function loadAllImages() {
+            fetch('/all_images')
+            .then(response => response.json())
+            .then(data => {
+                const imageList = document.getElementById('imageList');
+                const image1Select = document.getElementById('image1');
+                const image2Select = document.getElementById('image2');
+                
+                // Clear existing options
+                image1Select.innerHTML = '<option value="">-- Select an image --</option>';
+                image2Select.innerHTML = '<option value="">-- Select an image --</option>';
+                
+                // Clear image list
+                imageList.innerHTML = '';
+                
+                const allImages = data.uploaded_images;
+                
+                if (allImages.length === 0) {
+                    imageList.innerHTML = `
+                        <div class="empty-state">
+                            <p>No images available</p>
+                            <p>Upload some images to get started</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Add images to the list and dropdowns
+                allImages.forEach(image => {
+                    // Add to image list
+                    const imageItem = document.createElement('div');
+                    imageItem.className = 'image-item';
+                    
+                    const imageUrl = `/uploads/${image.name}`;
+                    const imageKey = image.name;
+                    
+                    imageItem.innerHTML = `
+                        <img src="${imageUrl}" alt="${image.name}">
+                        <div class="image-info">
+                            <div class="image-source">${image.source}</div>
+                            <p title="${image.name}">${image.name}</p>
+                            <div class="image-actions">
+                                <button onclick="selectForComparison('${imageKey}', 'image1')" class="btn-success">Select 1</button>
+                                <button onclick="selectForComparison('${imageKey}', 'image2')" class="btn-success">Select 2</button>
+                            </div>
+                        </div>
+                    `;
+                    imageList.appendChild(imageItem);
+                    
+                    // Add to dropdowns
+                    const optionText = `${image.name} (${image.source})`;
+                    const option1 = new Option(optionText, imageKey);
+                    const option2 = new Option(optionText, imageKey);
+                    
+                    image1Select.add(option1);
+                    image2Select.add(option2);
+                });
+            });
+        }
+        
+        // Select image for comparison
+        function selectForComparison(imageKey, target) {
+            document.getElementById(target).value = imageKey;
+        }
+        
+        // Compare images
+        document.getElementById('compareButton').addEventListener('click', function() {
+            const image1 = document.getElementById('image1').value;
+            const image2 = document.getElementById('image2').value;
+            
+            if (!image1 || !image2) {
+                document.getElementById('result').innerHTML = `
+                    <div class="alert-error" style="padding: 15px; border-radius: 5px;">
+                        <strong>Error:</strong> Please select two images to compare.
+                    </div>
+                `;
+                return;
+            }
+            
+            fetch('/compare', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    image1: image1,
+                    image2: image2
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerHTML = `
+                        <div class="alert-error" style="padding: 15px; border-radius: 5px;">
+                            <strong>Error:</strong> ${data.error}
+                        </div>
+                    `;
+                } else {
+                    const similarityPercent = (data.similarity_percentage * 100).toFixed(2);
+                    document.getElementById('result').innerHTML = `
+                        <h3>Comparison Result</h3>
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <div class="result-value">${data.similarity_percentage.toFixed(2)}%</div>
+                                <div class="result-label">Similarity</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-value">${data.cosine_similarity.toFixed(4)}</div>
+                                <div class="result-label">Cosine Similarity</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-value">${data.verdict}</div>
+                                <div class="result-label">Verdict</div>
+                            </div>
+                        </div>
+
+                        <h4>Similarity Visualization</h4>
+                        <div class="similarity-meter">
+                            <div class="similarity-fill" style="width: ${data.similarity_percentage}%"></div>
+                        </div>
+                        <div class="similarity-label">${data.similarity_percentage.toFixed(2)}% similar</div>
+                    `;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = `
+                    <div class="alert-error" style="padding: 15px; border-radius: 5px;">
+                        <strong>Error:</strong> Error comparing images: ${error}
+                    </div>
+                `;
+            });
+        });
+        
+        // Load images on page load
+        window.onload = function() {
+            loadAllImages();
+        };
+    </script>
+</body>
+</html>
