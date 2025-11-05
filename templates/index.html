@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face Image Similarity System</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --warning-color: #fca311;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --border-color: #dee2e6;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fb;
+            color: #333;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .upload-section {
+            grid-column: span 2;
+        }
+        
+        @media (max-width: 768px) {
+            .upload-section {
+                grid-column: span 1;
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="file"], input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #d1146a;
+        }
+        
+        .btn-success {
+            background-color: #2a9d8f;
+        }
+        
+        .btn-success:hover {
+            background-color: #228b7e;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e69500;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        #uploadStatus {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #e9ecef;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .image-item {
+            position: relative;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        
+        .image-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .image-info {
+            padding: 10px;
+        }
+        
+        .image-info p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .image-source {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .image-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .image-actions button {
+            flex: 1;
+            margin: 0 2px;
+            padding: 8px;
+            font-size: 14px;
+        }
+        
+        .comparison-section {
+            grid-column: span 2;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-section {
+                grid-column: span 1;
+            }
+        }
+        
+        .comparison-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .similarity-meter {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .similarity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffd166, #06d6a0);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .similarity-label {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .result-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .result-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state p {
+            margin: 10px 0 0 0;
+        }
+        
+        .dataset-list {
+            margin-top: 15px;
+        }
+        
+        .dataset-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .model-list {
+            margin-top: 15px;
+        }
+        
+        .model-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .model-info {
+            flex-grow: 1;
+        }
+        
+        .model-name {
+            font-weight: bold;
+        }
+        
+        .model-details {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .similar-images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .similar-image-item {
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            overflow: hidden;
+            background: white;
+            text-align: center;
+        }
+        
+        .similar-image-item img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+        }
+        
+        .similar-image-info {
+            padding: 5px;
+            font-size: 12px;
+        }
+        
+        .similarity-score {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .comparison-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .comparison-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #e9ecef;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .comparison-tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        
+        .comparison-tab-content {
+            display: none;
+        }
+        
+        .comparison-tab-content.active {
+            display: block;
+        }
+        
+        .face-similarity-result {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .face-verdict {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .face-verdict.same {
+            color: #2a9d8f;
+        }
+        
+        .face-verdict.similar {
+            color: var(--warning-color);
+        }
+        
+        .face-verdict.different {
+            color: var(--danger-color);
+        }
+        
+        .face-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .face-metric-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .face-metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .face-metric-label {
+            font-size: 1rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Face Image Similarity System</h1>
+        <p>Compare face images and find similarities using advanced computer vision techniques</p>
+    </header>
+    
+    <div class="container">
+        <div class="card upload-section">
+            <h2>Upload Face Images</h2>
+            <div class="tabs">
+                <div class="tab active" data-tab="single">Single Image</div>
+            </div>
+            
+            <div class="tab-content active" id="single-tab">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="fileInput">Choose a face image file:</label>
+                        <input type="file" id="fileInput" name="file" accept="image/*" required>
+                    </div>
+                    <button type="submit">Upload Image</button>
+                </form>
+            </div>
+            
+            <div id="uploadStatus"></div>
+        </div>
+        
+        <div class="card">
+            <h2>All Face Images</h2>
+            <div id="imageList" class="image-gallery">
+                <div class="empty-state">
+                    <p>No images available</p>
+                    <p>Upload some face images to get started</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card comparison-section">
+            <h2>Compare Face Images</h2>
+            <div class="form-group">
+                <label for="image1">Select First Face:</label>
+                <select id="image1">
+                    <option value="">-- Select a face image --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="image2">Select Second Face:</label>
+                <select id="image2">
+                    <option value="">-- Select a face image --</option>
+                </select>
+            </div>
+            <div>
+                <button id="compareButton">Compare Similarity</button>
+            </div>
+            
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Simplified script for the updated interface
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            formData.append('file', fileInput.files[0]);
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showStatus('Error: ' + data.error, 'error');
+                } else {
+                    showStatus('Face image uploaded successfully: ' + data.filename, 'success');
+                    loadAllImages();
+                    fileInput.value = '';
+                }
+            })
+            .catch(error => {
+                showStatus('Error uploading image: ' + error, 'error');
+            });
+        });
+        
+        // Show status message
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = 'alert-' + type;
+            statusDiv.style.display = 'block';
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Load all images
+        function loadAllImages() {
+            fetch('/all_images')
+            .then(response => response.json())
+            .then(data => {
+                const imageList = document.getElementById('imageList');
+                const image1Select = document.getElementById('image1');
+                const image2Select = document.getElementById('image2');
+                
+                // Clear existing options
+                image1Select.innerHTML = '<option value="">-- Select a face image --</option>';
+                image2Select.innerHTML = '<option value="">-- Select a face image --</option>';
+                
+                // Clear image list
+                imageList.innerHTML = '';
+                
+                const allImages = [...data.uploaded_images, ...data.dataset_images];
+                
+                if (allImages.length === 0) {
+                    imageList.innerHTML = `
+                        <div class="empty-state">
+                            <p>No face images available</p>
+                            <p>Upload some face images to get started</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Add images to the list and dropdowns
+                allImages.forEach(image => {
+                    // Add to image list
+                    const imageItem = document.createElement('div');
+                    imageItem.className = 'image-item';
+                    
+                    let imageUrl, imageKey;
+                    if (image.source === 'uploads') {
+                        imageUrl = `/uploads/${image.name}`;
+                        imageKey = image.name;
+                    } else {
+                        const datasetName = image.source.replace('dataset:', '');
+                        imageUrl = `/datasets/${datasetName}/${image.name}`;
+                        imageKey = `${datasetName}/${image.name}`;
+                    }
+                    
+                    imageItem.innerHTML = `
+                        <img src="${imageUrl}" alt="${image.name}">
+                        <div class="image-info">
+                            <div class="image-source">${image.source}</div>
+                            <p title="${image.name}">${image.name}</p>
+                            <div class="image-actions">
+                                <button onclick="deleteImage('${imageKey}', '${image.source}')" class="btn-danger">Delete</button>
+                                <button onclick="selectForComparison('${imageKey}', 'image1')" class="btn-success">Select 1</button>
+                                <button onclick="selectForComparison('${imageKey}', 'image2')" class="btn-success">Select 2</button>
+                            </div>
+                        </div>
+                    `;
+                    imageList.appendChild(imageItem);
+                    
+                    // Add to dropdowns
+                    const optionText = `${image.name} (${image.source})`;
+                    const option1 = new Option(optionText, imageKey);
+                    const option2 = new Option(optionText, imageKey);
+                    
+                    image1Select.add(option1);
+                    image2Select.add(option2);
+                });
+            });
+        }
+        
+        // Delete image
+        function deleteImage(imageKey, source) {
+            let filename, url;
+            if (source === 'uploads') {
+                filename = imageKey;
+                url = '/delete/' + encodeURIComponent(filename);
+            } else {
+                // For dataset images, we don't support individual deletion
+                alert('Individual dataset images cannot be deleted. Delete the entire dataset instead.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete ' + filename + '?')) {
+                fetch(url, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showStatus('Error: ' + data.error, 'error');
+                    } else {
+                        showStatus(data.message, 'success');
+                        loadAllImages();
+                        // Reset comparison dropdowns if the deleted image was selected
+                        const image1Select = document.getElementById('image1');
+                        const image2Select = document.getElementById('image2');
+                        
+                        if (image1Select.value === imageKey) image1Select.value = '';
+                        if (image2Select.value === imageKey) image2Select.value = '';
+                    }
+                })
+                .catch(error => {
+                    showStatus('Error deleting image: ' + error, 'error');
+                });
+            }
+        }
+        
+        // Select image for comparison
+        function selectForComparison(imageKey, target) {
+            document.getElementById(target).value = imageKey;
+        }
+        
+        // Compare images using features
+        document.getElementById('compareButton').addEventListener('click', function() {
+            const image1 = document.getElementById('image1').value;
+            const image2 = document.getElementById('image2').value;
+            
+            if (!image1 || !image2) {
+                document.getElementById('result').innerHTML = `
+                    <div class="alert-error" style="padding: 15px; border-radius: 5px;">
+                        <strong>Error:</strong> Please select two face images to compare.
+                    </div>
+                `;
+                return;
+            }
+            
+            fetch('/compare_faces', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    image1: image1,
+                    image2: image2
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerHTML = `
+                        <div class="alert-error" style="padding: 15px; border-radius: 5px;">
+                            <strong>Error:</strong> ${data.error}
+                        </div>
+                    `;
+                } else {
+                    // Display face similarity results
+                    let verdictClass = '';
+                    if (data.verdict.includes('Same Person') || data.verdict.includes('Very Similar')) {
+                        verdictClass = 'same';
+                    } else if (data.verdict.includes('Possibly Similar')) {
+                        verdictClass = 'similar';
+                    } else {
+                        verdictClass = 'different';
+                    }
+                    
+                    let html = `
+                        <div class="face-similarity-result">
+                            <h3>Face Similarity Analysis</h3>
+                            <div class="face-verdict ${verdictClass}">${data.verdict}</div>
+                            
+                            <div class="face-metrics">
+                                <div class="face-metric-item">
+                                    <div class="face-metric-value">${data.similarity_percentage.toFixed(2)}%</div>
+                                    <div class="face-metric-label">Similarity Score</div>
+                                </div>
+                                <div class="face-metric-item">
+                                    <div class="face-metric-value">${data.cosine_similarity.toFixed(4)}</div>
+                                    <div class="face-metric-label">Cosine Similarity</div>
+                                </div>
+                                <div class="face-metric-item">
+                                    <div class="face-metric-value">${data.euclidean_distance.toFixed(2)}</div>
+                                    <div class="face-metric-label">Euclidean Distance</div>
+                                </div>
+                                ${data.mse !== null ? `
+                                <div class="face-metric-item">
+                                    <div class="face-metric-value">${data.mse.toFixed(2)}</div>
+                                    <div class="face-metric-label">MSE</div>
+                                </div>` : ''}
+                                ${data.ssim !== null ? `
+                                <div class="face-metric-item">
+                                    <div class="face-metric-value">${data.ssim.toFixed(4)}</div>
+                                    <div class="face-metric-label">SSIM</div>
+                                </div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('result').innerHTML = html;
+                }
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = `
+                    <div class="alert-error" style="padding: 15px; border-radius: 5px;">
+                        <strong>Error:</strong> Error comparing faces: ${error}
+                    </div>
+                `;
+            });
+        });
+        
+        // Load images on page load
+        window.onload = function() {
+            loadAllImages();
+        };
+    </script>
+</body>
+</html>
